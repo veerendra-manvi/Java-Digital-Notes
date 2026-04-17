@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+// ─── Company ─────────────────────────────────────────────────────────────────
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  tagline     String?
+  summary     String
+  logoEmoji   String
+  gradient    String   @default("from-indigo-500 to-purple-600")
+  tier        String   @default("MNC")  // "FAANG" | "Tier-1" | "MNC" | "Tier-2"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions      CompanyQuestion[]
+  codingProblems CodingProblem[]
+}
+
+// ─── CompanyQuestion ──────────────────────────────────────────────────────────
+model CompanyQuestion {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  category    String   // "technical" | "hr" | "aptitude" | "coding"
+  difficulty  String   // "easy" | "medium" | "hard"
+  question    String
+  modelAnswer String
+  hints       String[] // progressive hints array
+  tags        String[]
+  isFresher   Boolean  @default(false)
+  isApproved  Boolean  @default(true)
+  source      String?  // origin of the question
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  savedBy     SavedQuestion[]
+  attempts    PracticeAttempt[]
+  hintLogs    QuestionHint[]
+  pending     QuestionSource[]
+}
+
+// ─── QuestionHint (AI / manual hint log) ─────────────────────────────────────
+model QuestionHint {
+  id         String   @id @default(cuid())
+  questionId String
+  question   CompanyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  hintText   String
+  hintType   String   // "nudge" | "improve" | "missing-points" | "better-answer"
+  sessionId  String   // browser session uuid
+
+  createdAt  DateTime @default(now())
+}
+
+// ─── CodingProblem ────────────────────────────────────────────────────────────
+model CodingProblem {
+  id                  String   @id @default(cuid())
+  companyId           String?
+  company             Company? @relation(fields: [companyId], references: [id])
+  topicSlug           String?  // optional: link to existing /topics/[slug]
+
+  title               String
+  slug                String   @unique
+  description         String
+  examples            Json     // [{input, output, explanation}]
+  constraints         String[]
+  starterCode         String
+  solutionCode        String
+  solutionExplanation String
+  difficulty          String   // "easy" | "medium" | "hard"
+  language            String   @default("java")
+
+  isApproved  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── PracticeAttempt ─────────────────────────────────────────────────────────
+model PracticeAttempt {
+  id           String   @id @default(cuid())
+  sessionId    String
+
+  questionId   String?
+  question     CompanyQuestion? @relation(fields: [questionId], references: [id])
+  questionType String   @default("company")  // "company" | "topic" | "coding"
+
+  userAnswer   String
+  aiFeedback   String?
+  selfScore    Int?     // 0-5 self-assessed rating
+  timeSpentSec Int?     // seconds spent answering
+
+  practicedAt  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([questionId])
+}
+
+// ─── SavedQuestion ────────────────────────────────────────────────────────────
+model SavedQuestion {
+  id           String   @id @default(cuid())
+  sessionId    String
+  questionId   String
+  question     CompanyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionType String   @default("company")
+  savedAt      DateTime @default(now())
+
+  @@unique([sessionId, questionId])
+  @@index([sessionId])
+}
+
+// ─── UserContent ──────────────────────────────────────────────────────────────
+model UserContent {
+  id          String   @id @default(cuid())
+  sessionId   String
+  type        String   // "topic" | "question" | "note"
+  contentJson Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+// ─── QuestionSource (staging table for safe ingestion) ───────────────────────
+model QuestionSource {
+  id          String   @id @default(cuid())
+  questionId  String?  // if linked to an existing CompanyQuestion
+  question    CompanyQuestion? @relation(fields: [questionId], references: [id])
+
+  companySlug String   // which company this is for
+  category    String   // question category
+  sourceType  String   // "manual" | "cron" | "web-scrape"
+  sourceUrl   String?
+  rawData     Json     // the raw scraped/ingested data before approval
+
+  isPending   Boolean  @default(true)   // waiting for review
+  isApproved  Boolean  @default(false)  // approved → creates CompanyQuestion
+  isRejected  Boolean  @default(false)
+
+  fetchedAt   DateTime @default(now())
+  reviewedAt  DateTime?
+  reviewNote  String?
+}
