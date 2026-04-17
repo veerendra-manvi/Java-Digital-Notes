@@ -102,7 +102,7 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 
           {questions.length > 0 ? (
             <div className="space-y-6">
-              {questions.map((q: CompanyQuestion) => (
+              {questions.map((q: any) => (
                 <CompanyQuestionCard key={q.id} q={q} />
               ))}
             </div>
@@ -142,9 +142,9 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
               <CodingProblemCard key={cp.id} cp={cp} />
             ))
           ) : (
-            <EmptyState 
-              title="No coding problems yet" 
-              description="Stay tuned! Coding challenges for this company are being added." 
+            <EmptyState
+              title="No coding problems yet"
+              description="Stay tuned! Coding challenges for this company are being added."
             />
           )}
 
