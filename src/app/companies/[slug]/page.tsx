@@ -6,7 +6,6 @@ import { CompanyQuestionCard } from '@/components/domain/CompanyQuestionCard';
 import { CodingProblemCard } from '@/components/domain/CodingProblemCard';
 import { EmptyState } from '@/components/common/EmptyState';
 import { prisma } from '@/lib/prisma';
-import { CompanyQuestion, CodingProblem } from '@prisma/client';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -138,7 +137,7 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
           <h2 className="text-2xl font-black">Coding Challenges</h2>
 
           {codingProblems.length > 0 ? (
-            codingProblems.map((cp: CodingProblem) => (
+            codingProblems.map((cp: any) => (
               <CodingProblemCard key={cp.id} cp={cp} />
             ))
           ) : (
