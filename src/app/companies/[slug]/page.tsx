@@ -111,8 +111,8 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 
           {questions.length > 0 ? (
             <div className="space-y-6">
-              {questions.map((q) => (
-                <CompanyQuestionCard key={q.id} q={q as any} />
+              {questions.map((q: any) => (
+                <CompanyQuestionCard key={q.id} q={q} />
               ))}
             </div>
           ) : (
@@ -181,8 +181,8 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 
           {codingProblems.length > 0 ? (
             <div className="space-y-4">
-              {codingProblems.map((cp) => (
-                <CodingProblemCard key={cp.id} cp={cp as any} />
+              {codingProblems.map((cp: any) => (
+                <CodingProblemCard key={cp.id} cp={cp} />
               ))}
             </div>
           ) : (
