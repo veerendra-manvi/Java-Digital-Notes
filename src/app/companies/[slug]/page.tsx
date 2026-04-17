@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronLeft, ChevronRight, LayoutGrid, Terminal, BookOpen, Code2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutGrid, Terminal } from 'lucide-react';
 import { CompanyQuestionCard } from '@/components/domain/CompanyQuestionCard';
 import { CodingProblemCard } from '@/components/domain/CodingProblemCard';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -32,7 +32,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  // Fetch Company
   const company = await prisma.company.findUnique({
     where: { slug },
   });
@@ -41,7 +40,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
     notFound();
   }
 
-  // Fetch Questions
   const [questions, totalQuestions] = await Promise.all([
     prisma.companyQuestion.findMany({
       where: { companyId: company.id, isApproved: true },
@@ -54,7 +52,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
     })
   ]);
 
-  // Fetch Coding Problems
   const codingProblems = await prisma.codingProblem.findMany({
     where: { companyId: company.id, isApproved: true },
     orderBy: { difficulty: 'asc' }
@@ -64,10 +61,12 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 
   return (
     <div className="app-page section-gap">
-      {/* Header */}
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <Link href="/companies" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-500">
+          <Link
+            href="/companies"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-500"
+          >
             <LayoutGrid className="w-4 h-4" /> All Companies
           </Link>
 
@@ -78,7 +77,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 
         <div className="app-surface p-8 relative">
           <div className={`absolute inset-0 opacity-10 bg-gradient-to-br ${company.gradient || 'from-indigo-500 to-purple-600'}`} />
-
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
             <div className="text-7xl">{company.logoEmoji || '🏢'}</div>
             <div>
@@ -94,8 +92,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
-
-        {/* Questions */}
         <div className="lg:col-span-2 space-y-8">
           <h2 className="text-2xl font-black">Interview Questions</h2>
 
@@ -109,7 +105,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
             <EmptyState title="No questions yet" description="Coming soon" />
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-4">
               <Link href={page > 1 ? `/companies/${slug}?page=${page - 1}` : '#'}>
@@ -132,7 +127,6 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
           )}
         </div>
 
-        {/* Coding */}
         <div className="space-y-6">
           <h2 className="text-2xl font-black">Coding Challenges</h2>
 
@@ -148,10 +142,12 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
           )}
 
           <div className="p-4 bg-indigo-500 text-white rounded-xl">
-            Tip: Focus on Collections & Multithreading
+            <div className="flex items-center gap-2">
+              <Terminal className="w-4 h-4" />
+              <span>Tip: Focus on Collections & Multithreading</span>
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );
